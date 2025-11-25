@@ -1,0 +1,347 @@
+:root {
+  --cb-border: #d6d6e1;
+  --cb-border-strong: #b1b1c3;
+  --cb-bg: #f9f9fb;
+  --cb-bg-level-1: #fdfdfd;
+  --cb-bg-level-2: #f5f7ff;
+  --cb-bg-level-3: #eef3ff;
+  --cb-text: #1f2430;
+  --cb-accent: #4b7bec;
+  --cb-muted: #6b7080;
+  --cb-danger: #e26a6a;
+  --cb-radius: 8px;
+  --cb-gap: 10px;
+  --cb-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--cb-bg);
+  color: var(--cb-text);
+  padding: 24px;
+}
+
+.condition-builder {
+  background: white;
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 16px;
+  box-shadow: var(--cb-shadow);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.cb-logic-add {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cb-expression-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cb-expression-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cb-expression-block {
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 12px;
+  margin-bottom: 0;
+  background: var(--cb-bg-level-1);
+}
+
+.cb-expression-block.is-invalid {
+  border-color: var(--cb-danger);
+}
+
+.cb-expression-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cb-expression-title {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.cb-expression-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cb-expression-condition,
+.cb-expression-action {
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 10px;
+  background: white;
+}
+
+.cb-expression-condition-body {
+  min-height: 12px;
+  margin: 8px 0;
+}
+
+.cb-expression-action-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cb-return-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cb-return-label {
+  font-weight: 600;
+  color: var(--cb-muted);
+}
+
+.cb-subtitle {
+  font-weight: 600;
+  color: var(--cb-muted);
+}
+
+.cb-expression-body--value {
+  padding: 6px 0;
+}
+
+.cb-expression-value {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--cb-border);
+  font-size: 14px;
+  resize: vertical;
+}
+
+.cb-expression-value.is-invalid {
+  border-color: var(--cb-danger);
+}
+
+.cb-nested-controls {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.cb-nested-expressions {
+  border: 1px dashed var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 8px;
+  background: var(--cb-bg-level-2);
+}
+
+.cb-nested-container .cb-expression-block {
+  margin-top: 10px;
+}
+
+.cb-group {
+  border: 1px solid var(--cb-border);
+  padding: 12px;
+  margin-top: 10px;
+  background: var(--cb-bg-level-1);
+  border-radius: var(--cb-radius);
+}
+
+.cb-group .cb-group {
+  margin-left: 20px;
+  background: var(--cb-bg-level-2);
+}
+
+.cb-group .cb-group .cb-group {
+  background: var(--cb-bg-level-3);
+}
+
+.cb-group-header,
+.cb-group-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cb-group-header {
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cb-group-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cb-group-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cb-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 12px;
+  padding: 4px 2px;
+}
+
+.cb-group-body.is-drag-over {
+  border: 1px dashed var(--cb-accent);
+  border-radius: var(--cb-radius);
+  background: rgba(75, 123, 236, 0.04);
+}
+
+.cb-group-footer {
+  margin-top: 10px;
+}
+
+.cb-group.is-not {
+  border-color: var(--cb-accent);
+  box-shadow: 0 0 0 2px rgba(75, 123, 236, 0.12);
+}
+
+.cb-group.collapsed .cb-group-body,
+.cb-group.collapsed .cb-group-footer {
+  display: none;
+}
+
+.cb-group.collapsed .cb-collapse::after {
+  content: "+";
+}
+
+.cb-condition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 8px;
+  background: white;
+  box-shadow: var(--cb-shadow);
+}
+
+.cb-condition .cb-condition-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  align-items: center;
+}
+
+.cb-field,
+.cb-operator,
+.cb-value,
+.cb-logic,
+.cb-expression {
+  padding: 6px 8px;
+  border: 1px solid var(--cb-border);
+  border-radius: 6px;
+  min-width: 140px;
+  font-size: 14px;
+}
+
+.cb-value {
+  min-width: 160px;
+}
+
+.cb-btn,
+.cb-icon {
+  border: 1px solid var(--cb-border);
+  background: white;
+  color: var(--cb-text);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  font-size: 14px;
+}
+
+.cb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  background: #f3f5ff;
+  border-color: #d5dbff;
+}
+
+.cb-btn:hover,
+.cb-icon:hover {
+  background: #eef2ff;
+  border-color: var(--cb-border-strong);
+}
+
+.cb-icon.cb-delete {
+  color: var(--cb-danger);
+  border-color: #f3c5c5;
+  background: #fff6f6;
+}
+
+.cb-icon.cb-delete:hover {
+  border-color: var(--cb-danger);
+}
+
+.cb-icon.cb-invert {
+  background: #eef7ff;
+  border-color: #c7defe;
+  color: var(--cb-accent);
+  font-weight: 700;
+}
+
+.cb-icon.cb-collapse {
+  width: 32px;
+  text-align: center;
+}
+
+.cb-tag {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f2f6;
+  border: 1px solid var(--cb-border);
+  font-size: 12px;
+  color: var(--cb-muted);
+}
+
+.cb-placeholder {
+  border: 1px dashed var(--cb-accent);
+  padding: 6px;
+  border-radius: 6px;
+  background: rgba(75, 123, 236, 0.06);
+}
+
+.cb-condition.is-invalid,
+.cb-group.is-invalid {
+  border-color: var(--cb-danger);
+}
+
+@media (max-width: 720px) {
+  .cb-group-header,
+  .cb-condition {
+    align-items: flex-start;
+  }
+
+  .cb-condition .cb-condition-actions {
+    margin-left: 0;
+  }
+}
