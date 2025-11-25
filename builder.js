@@ -1,4 +1,4 @@
-import { ConditionGroup } from './group.js';
+/* global ConditionGroup */
 
 class ConditionBuilder {
   constructor(mount, options = {}) {
@@ -85,5 +85,3 @@ if (mountPoint) {
   // expose for debugging/demo
   window.conditionBuilder = builder;
 }
-
-export default ConditionBuilder;

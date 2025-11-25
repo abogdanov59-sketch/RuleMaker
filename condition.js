@@ -1,4 +1,4 @@
-export class Condition {
+class Condition {
   constructor(builder, parentGroup, data = {}) {
     this.builder = builder;
     this.parentGroup = parentGroup;
@@ -107,3 +107,5 @@ export class Condition {
     return isValid;
   }
 }
+
+window.Condition = Condition;

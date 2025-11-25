@@ -1,6 +1,6 @@
-import { Condition } from './condition.js';
+/* global Condition */
 
-export class ConditionGroup {
+class ConditionGroup {
   constructor(builder, parentGroup = null, data = {}) {
     this.builder = builder;
     this.parentGroup = parentGroup;
@@ -217,3 +217,5 @@ export class ConditionGroup {
     return isValid;
   }
 }
+
+window.ConditionGroup = ConditionGroup;
