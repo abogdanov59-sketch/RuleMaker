@@ -18,25 +18,14 @@ class ConditionBuilder {
     const controls = document.createElement('div');
     controls.className = 'cb-controls';
 
-    const addGroupControl = document.createElement('div');
-    addGroupControl.className = 'cb-inline-control';
-
-    const addGroupLogic = this.createLogicSelect('AND');
-    addGroupLogic.title = 'Logic for new groups';
-
     const addCondition = document.createElement('button');
     addCondition.className = 'cb-btn cb-btn-add-condition';
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.rootGroup.addCondition());
 
-    const addGroup = document.createElement('button');
-    addGroup.className = 'cb-btn cb-btn-add-group';
-    addGroup.textContent = 'Add group';
-    addGroup.addEventListener('click', () => this.rootGroup.addGroup({ logic: addGroupLogic.value }));
+    const addGroupControls = this.createLogicAddControls((logic) => this.rootGroup.addGroup({ logic }));
 
-    addGroupControl.append(addGroupLogic, addGroup);
-
-    controls.append(addCondition, addGroupControl);
+    controls.append(addCondition, addGroupControls);
 
     wrapper.appendChild(controls);
 
@@ -74,6 +63,21 @@ class ConditionBuilder {
       select.appendChild(opt);
     });
     return select;
+  }
+
+  createLogicAddControls(onAdd, label = 'group') {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cb-logic-add';
+
+    ['AND', 'OR'].forEach((logic) => {
+      const btn = document.createElement('button');
+      btn.className = 'cb-btn cb-btn-add-group';
+      btn.textContent = `Add ${logic} ${label}`;
+      btn.addEventListener('click', () => onAdd(logic));
+      wrapper.appendChild(btn);
+    });
+
+    return wrapper;
   }
 
   toJSON() {

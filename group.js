@@ -76,18 +76,7 @@ class ConditionGroup {
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.addCondition());
 
-    const addGroupControls = document.createElement('div');
-    addGroupControls.className = 'cb-inline-control';
-
-    const addGroupLogic = this.builder.createLogicSelect('AND');
-    addGroupLogic.title = 'Logic for new subgroup';
-
-    const addGroup = document.createElement('button');
-    addGroup.className = 'cb-btn cb-btn-add-group';
-    addGroup.textContent = 'Add subgroup';
-    addGroup.addEventListener('click', () => this.addGroup({ logic: addGroupLogic.value }));
-
-    addGroupControls.append(addGroupLogic, addGroup);
+    const addGroupControls = this.builder.createLogicAddControls((logic) => this.addGroup({ logic }), 'subgroup');
 
     footer.append(addCondition, addGroupControls);
 

@@ -63,7 +63,7 @@ In demo mode the builder instance is available on `window.conditionBuilder` for 
 ## Features
 
 - Add/remove conditions and nested groups at any depth (10+ levels supported).
-- Switch logic between **AND**/**OR** and invert groups via **NOT**, including choosing the logical operator when creating a new group.
+- Switch logic between **AND**/**OR** and invert groups via **NOT**; create new groups or subgroups directly with **Add AND group** / **Add OR group** buttons.
 - Collapse/expand groups with `.collapsed` state.
 - Drag-and-drop reordering across sibling items or moving to another group body.
 - Built-in styling that highlights nested levels, buttons, and invalid states.
