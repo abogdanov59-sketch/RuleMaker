@@ -42,11 +42,24 @@ body {
   flex-wrap: wrap;
 }
 
+.cb-expression-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cb-expression-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .cb-expression-block {
   border: 1px solid var(--cb-border);
   border-radius: var(--cb-radius);
   padding: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
   background: var(--cb-bg-level-1);
 }
 

@@ -20,7 +20,7 @@ A lightweight, framework-free condition builder component. The component is full
 <script src="builder.js" defer></script>
 ```
 
-Initialization happens automatically when an element with `id="builder"` exists. To configure options manually after the scripts load:
+Initialization happens automatically when an element with `id="builder"` exists. By default no IF / ELSE IF / THEN / ELSE blocks are pre-created — use the top-row buttons to add whichever expressions you need, then add nested groups/conditions inside them. To configure options manually after the scripts load:
 
 ```html
 <div id="builder"></div>
@@ -70,7 +70,7 @@ In demo mode the builder instance is available on `window.conditionBuilder` for 
 ## Features
 
 - Add/remove conditions and nested groups at any depth (10+ levels supported).
-- Separate top-level branches for **IF** and **ELSE IF** groups (AND/OR selectable); **THEN** and **ELSE** sections accept direct return values without wrapping groups.
+- Separate top-level branches for **IF** and **ELSE IF** groups (AND/OR selectable) that are created on demand; **THEN** and **ELSE** sections accept direct return values without wrapping groups and can be added/removed independently.
 - Collapse/expand groups with `.collapsed` state.
 - Drag-and-drop reordering across sibling items or moving to another group body (conditions and groups are both draggable).
 - Built-in styling that highlights nested levels, buttons, and invalid states.

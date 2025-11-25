@@ -8,6 +8,12 @@ class ConditionBuilder {
     this.registry = new Map();
     this.idCounter = 0;
     this.dragging = null;
+    this.ifGroup = null;
+    this.elseIfGroups = [];
+    this.thenInput = null;
+    this.elseInput = null;
+    this.controlButtons = {};
+    this.expressionList = null;
     this.render(options.data || null);
   }
 
@@ -17,22 +23,29 @@ class ConditionBuilder {
 
     const expressions = data || {};
 
-    const ifSection = this.createExpressionSection('IF', (container) => {
-      this.ifGroup = this.addRootGroup(container, expressions.if || { type: 'group', logic: 'AND', not: false, items: [] });
-    });
+    const controls = this.createExpressionControls();
+    const list = document.createElement('div');
+    list.className = 'cb-expression-list';
+    this.expressionList = list;
 
-    const elseIfSection = this.createExpressionSection('ELSE IF', (container) => {
-      const list = expressions.elseIf && Array.isArray(expressions.elseIf) && expressions.elseIf.length
-        ? expressions.elseIf
-        : [];
+    wrapper.append(controls, list);
 
-      this.elseIfGroups = list.map((item) => this.addRootGroup(container, item));
-    }, true);
+    if (expressions.if) {
+      this.addIfSection(expressions.if);
+    }
 
-    const thenSection = this.createValueSection('THEN', expressions.then || '');
-    const elseSection = this.createValueSection('ELSE', expressions.else || '');
+    if (expressions.elseIf && Array.isArray(expressions.elseIf)) {
+      expressions.elseIf.forEach((entry) => this.addElseIfSection(entry));
+    }
 
-    wrapper.append(ifSection, elseIfSection, thenSection, elseSection);
+    if (Object.prototype.hasOwnProperty.call(expressions, 'then')) {
+      this.addThenSection(expressions.then);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(expressions, 'else')) {
+      this.addElseSection(expressions.else);
+    }
+
     this.mount.innerHTML = '';
     this.mount.appendChild(wrapper);
   }
@@ -52,6 +65,28 @@ class ConditionBuilder {
 
   setDragging(item) {
     this.dragging = item;
+  }
+
+  createExpressionControls() {
+    const controls = document.createElement('div');
+    controls.className = 'cb-expression-controls';
+
+    const addButton = (key, label, handler) => {
+      const btn = document.createElement('button');
+      btn.className = 'cb-btn cb-btn-add-expression';
+      btn.textContent = label;
+      btn.addEventListener('click', handler);
+      this.controlButtons[key] = btn;
+      controls.appendChild(btn);
+    };
+
+    addButton('if', 'Добавить IF', () => this.addIfSection());
+    addButton('elseIf', 'Добавить ELSE IF', () => this.addElseIfSection());
+    addButton('then', 'Добавить THEN', () => this.addThenSection());
+    addButton('else', 'Добавить ELSE', () => this.addElseSection());
+
+    this.updateExpressionControls();
+    return controls;
   }
 
   createLogicSelect(selected = 'AND') {
@@ -83,7 +118,7 @@ class ConditionBuilder {
     return wrapper;
   }
 
-  createExpressionSection(title, initializer, allowMultiple = false) {
+  createExpressionSection(title, initializer, allowMultiple = false, removable = true) {
     const section = document.createElement('div');
     section.className = 'cb-expression-block';
 
@@ -102,27 +137,35 @@ class ConditionBuilder {
     body.dataset.expr = title;
 
     const addControls = this.createGroupAddControls(({ logic }) => {
-      const group = this.addRootGroup(body, { logic, type: 'group', not: false, items: [] });
       if (!allowMultiple) {
         body.innerHTML = '';
-        body.appendChild(group.el);
-        this.ifGroup = group;
-      } else {
-        this.elseIfGroups = this.elseIfGroups || [];
-        this.elseIfGroups.push(group);
       }
+      this.addRootGroup(body, { logic, type: 'group', not: false, items: [] });
     });
 
     actions.appendChild(addControls);
+
+    if (removable) {
+      const remove = document.createElement('button');
+      remove.className = 'cb-icon cb-delete';
+      remove.title = 'Удалить блок';
+      remove.textContent = '✕';
+      remove.addEventListener('click', () => {
+        section.remove();
+        initializer(body, true);
+      });
+      actions.appendChild(remove);
+    }
+
     header.append(label, actions);
     section.append(header, body);
 
-    initializer(body);
+    initializer(body, false);
 
     return section;
   }
 
-  createValueSection(title, initialValue = '') {
+  createValueSection(title, initialValue = '', removable = true, onRemove = () => {}) {
     const section = document.createElement('div');
     section.className = 'cb-expression-block';
 
@@ -133,7 +176,22 @@ class ConditionBuilder {
     label.className = 'cb-expression-title';
     label.textContent = title;
 
-    header.appendChild(label);
+    const actions = document.createElement('div');
+    actions.className = 'cb-expression-actions';
+
+    if (removable) {
+      const remove = document.createElement('button');
+      remove.className = 'cb-icon cb-delete';
+      remove.title = 'Удалить блок';
+      remove.textContent = '✕';
+      remove.addEventListener('click', () => {
+        section.remove();
+        onRemove();
+      });
+      actions.appendChild(remove);
+    }
+
+    header.append(label, actions);
 
     const body = document.createElement('div');
     body.className = 'cb-expression-body cb-expression-body--value';
@@ -160,6 +218,19 @@ class ConditionBuilder {
     const group = new ConditionGroup(this, null, { ...data, rootKind: container.dataset.expr || null });
     container.appendChild(group.el);
     this.register(group);
+
+    if (group.rootKind === 'IF') {
+      this.ifGroup = group;
+    }
+
+    if (group.rootKind === 'ELSE IF') {
+      this.elseIfGroups = this.elseIfGroups || [];
+      if (!this.elseIfGroups.includes(group)) {
+        this.elseIfGroups.push(group);
+      }
+    }
+
+    this.updateExpressionControls();
     return group;
   }
 
@@ -167,15 +238,136 @@ class ConditionBuilder {
     if (group.rootKind === 'ELSE IF' && this.elseIfGroups) {
       this.elseIfGroups = this.elseIfGroups.filter((entry) => entry !== group);
     }
+    if (group.rootKind === 'IF' && this.ifGroup === group) {
+      this.ifGroup = null;
+    }
+    const parentBody = group.el.parentElement;
+    if (parentBody && parentBody._group === group) {
+      parentBody._group = null;
+    }
     group.el.remove();
+    this.updateExpressionControls();
+  }
+
+  addIfSection(data = null) {
+    if (this.ifSection) {
+      this.ifSection.remove();
+    }
+
+    const initializer = (body, isRemove) => {
+      if (isRemove) {
+        if (this.ifGroup) {
+          this.removeRootGroup(this.ifGroup);
+        }
+        this.ifSection = null;
+        this.updateExpressionControls();
+        return;
+      }
+      if (body && data) {
+        body.innerHTML = '';
+        const group = this.addRootGroup(body, data);
+        body._group = group;
+      }
+    };
+
+    const section = this.createExpressionSection('IF', initializer, false, true);
+    this.ifSection = section;
+    this.expressionList.appendChild(section);
+    this.updateExpressionControls();
+  }
+
+  addElseIfSection(data = null) {
+    const initializer = (body, isRemove) => {
+      if (isRemove) {
+        if (body && body._group) {
+          this.removeRootGroup(body._group);
+        }
+        this.elseIfGroups = this.elseIfGroups.filter((grp) => grp !== body?._group);
+        this.updateExpressionControls();
+        return;
+      }
+
+      if (body && data) {
+        body.innerHTML = '';
+        const group = this.addRootGroup(body, data);
+        body._group = group;
+      }
+    };
+
+    const section = this.createExpressionSection('ELSE IF', initializer, false, true);
+    const body = section.querySelector('.cb-expression-body');
+    if (typeof body._group === 'undefined') {
+      body._group = null;
+    }
+
+    // override add control to enforce a single group per ELSE IF section
+    const addBtn = section.querySelector('.cb-btn-add-group');
+    const logicSelect = section.querySelector('.cb-logic');
+    addBtn.replaceWith(addBtn.cloneNode(true));
+    const newAddBtn = section.querySelector('.cb-btn-add-group');
+    newAddBtn.addEventListener('click', () => {
+      body.innerHTML = '';
+      const group = this.addRootGroup(body, { logic: logicSelect.value, type: 'group', not: false, items: [] });
+      body._group = group;
+    });
+
+    this.expressionList.appendChild(section);
+    this.updateExpressionControls();
+  }
+
+  addThenSection(initialValue = '') {
+    if (this.thenSection) {
+      this.thenSection.remove();
+    }
+
+    const onRemove = () => {
+      this.thenInput = null;
+      this.thenSection = null;
+      this.updateExpressionControls();
+    };
+
+    const section = this.createValueSection('THEN', initialValue || '', true, onRemove);
+    this.thenSection = section;
+    this.expressionList.appendChild(section);
+    this.updateExpressionControls();
+  }
+
+  addElseSection(initialValue = '') {
+    if (this.elseSection) {
+      this.elseSection.remove();
+    }
+
+    const onRemove = () => {
+      this.elseInput = null;
+      this.elseSection = null;
+      this.updateExpressionControls();
+    };
+
+    const section = this.createValueSection('ELSE', initialValue || '', true, onRemove);
+    this.elseSection = section;
+    this.expressionList.appendChild(section);
+    this.updateExpressionControls();
+  }
+
+  updateExpressionControls() {
+    if (!this.controlButtons) return;
+    if (this.controlButtons.if) {
+      this.controlButtons.if.disabled = Boolean(this.ifSection);
+    }
+    if (this.controlButtons.then) {
+      this.controlButtons.then.disabled = Boolean(this.thenInput);
+    }
+    if (this.controlButtons.else) {
+      this.controlButtons.else.disabled = Boolean(this.elseInput);
+    }
   }
 
   toJSON() {
     return {
       if: this.ifGroup ? this.ifGroup.toJSON() : null,
       elseIf: this.elseIfGroups ? this.elseIfGroups.map((grp) => grp.toJSON()) : [],
-      then: this.thenInput ? this.thenInput.value : '',
-      else: this.elseInput ? this.elseInput.value : '',
+      then: this.thenInput ? this.thenInput.value : null,
+      else: this.elseInput ? this.elseInput.value : null,
     };
   }
 
