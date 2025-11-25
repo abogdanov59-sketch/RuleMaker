@@ -257,8 +257,11 @@ class ConditionBuilder {
       this.expressions.unshift(expression);
       this.expressionList.prepend(expression.section);
     } else {
-    this.expressions.push(expression);
-    this.expressionList.appendChild(expression.section);
+      this.expressions.push(expression);
+      this.expressionList.appendChild(expression.section);
+    }
+
+    this.updateExpressionControls();
   }
 
   removeRootGroup(group) {
@@ -277,7 +280,6 @@ class ConditionBuilder {
     } else {
       expr.conditionGroup = null;
     }
-  }
     this.updateExpressionControls();
   }
 
