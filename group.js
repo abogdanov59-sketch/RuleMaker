@@ -25,9 +25,6 @@ class ConditionGroup {
 
     const logic = this.builder.createLogicSelect(data.logic || 'AND');
 
-    const expression = this.builder.createExpressionSelect(data.expression || '');
-    expression.addEventListener('change', () => this.updateTag(expression.value));
-
     const notBtn = document.createElement('button');
     notBtn.className = 'cb-icon cb-invert';
     notBtn.textContent = 'NOT';
@@ -36,9 +33,9 @@ class ConditionGroup {
 
     const tag = document.createElement('span');
     tag.className = 'cb-tag';
-    tag.textContent = data.expression ? `${data.expression} group` : 'Group';
+    tag.textContent = 'Group';
 
-    meta.append(logic, expression, notBtn, tag);
+    meta.append(logic, notBtn, tag);
 
     const actions = document.createElement('div');
     actions.className = 'cb-group-actions';
@@ -79,13 +76,12 @@ class ConditionGroup {
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.addCondition());
 
-    const addGroupControls = this.builder.createLogicAddControls(({ logic, expression: newExpression }) => this.addGroup({ logic, expression: newExpression }), 'subgroup');
+    const addGroupControls = this.builder.createLogicAddControls((logic) => this.addGroup({ logic }), 'subgroup');
 
     footer.append(addCondition, addGroupControls);
 
     group.append(header, body, footer);
     this.logic = logic;
-    this.expression = expression;
     this.notBtn = notBtn;
     this.body = body;
     this.drag = drag;
@@ -94,8 +90,6 @@ class ConditionGroup {
     if (data.not) {
       this.toggleNot(true);
     }
-
-    this.updateTag(data.expression || '');
 
     return group;
   }
@@ -200,7 +194,6 @@ class ConditionGroup {
     return {
       type: 'group',
       logic: this.logic.value,
-      expression: this.expression.value || null,
       not: this.el.classList.contains('is-not'),
       items: this.items.map((item) => item.toJSON()),
     };
@@ -211,14 +204,6 @@ class ConditionGroup {
     const isValid = validItems.every(Boolean);
     this.el.classList.toggle('is-invalid', !isValid);
     return isValid;
-  }
-
-  updateTag(expressionValue) {
-    this.el.dataset.expression = expressionValue || '';
-    const tag = this.el.querySelector('.cb-tag');
-    if (tag) {
-      tag.textContent = expressionValue ? `${expressionValue} group` : 'Group';
-    }
   }
 }
 

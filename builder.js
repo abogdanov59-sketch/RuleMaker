@@ -23,7 +23,7 @@ class ConditionBuilder {
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.rootGroup.addCondition());
 
-    const addGroupControls = this.createLogicAddControls(({ logic, expression }) => this.rootGroup.addGroup({ logic, expression }));
+    const addGroupControls = this.createLogicAddControls((logic) => this.rootGroup.addGroup({ logic }));
 
     controls.append(addCondition, addGroupControls);
 
@@ -65,40 +65,15 @@ class ConditionBuilder {
     return select;
   }
 
-  createExpressionSelect(selected = '') {
-    const select = document.createElement('select');
-    select.className = 'cb-expression';
-
-    const options = [
-      { value: '', label: 'No expression' },
-      { value: 'IF', label: 'IF' },
-      { value: 'ELSE', label: 'ELSE' },
-      { value: 'THEN', label: 'THEN' },
-    ];
-
-    options.forEach((option) => {
-      const opt = document.createElement('option');
-      opt.value = option.value;
-      opt.textContent = option.label;
-      opt.selected = option.value === selected;
-      select.appendChild(opt);
-    });
-
-    return select;
-  }
-
   createLogicAddControls(onAdd, label = 'group') {
     const wrapper = document.createElement('div');
     wrapper.className = 'cb-logic-add';
-
-    const expressionSelect = this.createExpressionSelect();
-    wrapper.appendChild(expressionSelect);
 
     ['AND', 'OR'].forEach((logic) => {
       const btn = document.createElement('button');
       btn.className = 'cb-btn cb-btn-add-group';
       btn.textContent = `Add ${logic} ${label}`;
-      btn.addEventListener('click', () => onAdd({ logic, expression: expressionSelect.value || null }));
+      btn.addEventListener('click', () => onAdd(logic));
       wrapper.appendChild(btn);
     });
 

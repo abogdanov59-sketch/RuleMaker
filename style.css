@@ -136,8 +136,7 @@ body {
 .cb-field,
 .cb-operator,
 .cb-value,
-.cb-logic,
-.cb-expression {
+.cb-logic {
   padding: 6px 8px;
   border: 1px solid var(--cb-border);
   border-radius: 6px;

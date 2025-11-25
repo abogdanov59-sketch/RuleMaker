@@ -7,7 +7,7 @@ A lightweight, framework-free condition builder component. The component is full
 - `index.html` – demo shell to mount the builder.
 - `style.css` – styles for the builder, grouped by BEM-like classes (`.condition-builder`, `.cb-group`, `.cb-condition`, etc.).
 - `builder.js` – entry module that wires the builder into a container and exposes the public API.
-- `group.js` – UI logic for condition groups, including AND/OR selection, optional IF/ELSE/THEN expression tagging, NOT toggle, collapse, drag-and-drop, and nested add/remove actions.
+- `group.js` – UI logic for condition groups, including AND/OR selection, NOT toggle, collapse, drag-and-drop, and nested add/remove actions.
 - `condition.js` – UI logic for individual conditions (field/operator/value with validation and drag support).
 
 ## Usage
@@ -41,7 +41,6 @@ Initialization happens automatically when an element with `id="builder"` exists.
         {
           type: 'group',
           logic: 'OR',
-          expression: 'IF',
           not: true,
           items: [{ type: 'condition', field: 'Amount', operator: '>', value: '100' }],
         },
@@ -55,7 +54,7 @@ Initialization happens automatically when an element with `id="builder"` exists.
 
 `ConditionBuilder` methods:
 
-- `toJSON()` – returns a deterministic JSON structure of the current state (groups, conditions, logic, optional IF/ELSE/THEN expressions, NOT flags, ordering).
+- `toJSON()` – returns a deterministic JSON structure of the current state (groups, conditions, logic, NOT flags, ordering).
 - `validate()` – validates that every condition has field, operator, and value; highlights invalid nodes.
 - `ConditionBuilder.fromJSON(mount, json, options?)` – convenience factory that builds the tree from an existing JSON payload.
 
@@ -64,7 +63,7 @@ In demo mode the builder instance is available on `window.conditionBuilder` for 
 ## Features
 
 - Add/remove conditions and nested groups at any depth (10+ levels supported).
-- Switch logic between **AND**/**OR** and invert groups via **NOT**; create new groups or subgroups directly with **Add AND group** / **Add OR group** buttons and optionally tag them as **IF / ELSE / THEN**.
+- Switch logic between **AND**/**OR** and invert groups via **NOT**; create new groups or subgroups directly with **Add AND group** / **Add OR group** buttons.
 - Collapse/expand groups with `.collapsed` state.
 - Drag-and-drop reordering across sibling items or moving to another group body.
 - Built-in styling that highlights nested levels, buttons, and invalid states.
