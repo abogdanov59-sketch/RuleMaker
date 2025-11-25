@@ -7,6 +7,7 @@ class ConditionGroup {
     this.id = builder.nextId();
     this.items = [];
     this.el = this.createElement(data);
+    this.updateTag(data.expression || '');
     this.attachDrag();
     this.loadItems(data.items || []);
   }
@@ -99,8 +100,6 @@ class ConditionGroup {
     if (data.not) {
       this.toggleNot(true);
     }
-
-    this.updateTag(data.expression || '');
 
     return group;
   }
