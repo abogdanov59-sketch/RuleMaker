@@ -30,8 +30,42 @@ class ConditionBuilder {
   }
 
   render(data) {
+    const app = document.createElement('div');
+    app.className = 'cb-app';
+
+    const header = document.createElement('div');
+    header.className = 'cb-header';
+
+    const tabs = document.createElement('div');
+    tabs.className = 'cb-tabs';
+
+    const builderTab = document.createElement('button');
+    builderTab.className = 'cb-tab is-active';
+    builderTab.textContent = 'Построитель условий';
+
+    const textTab = document.createElement('button');
+    textTab.className = 'cb-tab';
+    textTab.textContent = 'Текстовый режим';
+
+    tabs.append(builderTab, textTab);
+
+    const headerActions = document.createElement('div');
+    headerActions.className = 'cb-header-actions';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'cb-btn cb-btn-primary';
+    saveBtn.textContent = 'Сохранить';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'cb-icon cb-close';
+    closeBtn.title = 'Закрыть';
+    closeBtn.textContent = '✕';
+
+    headerActions.append(saveBtn, closeBtn);
+    header.append(tabs, headerActions);
+
     const wrapper = document.createElement('div');
-    wrapper.className = 'condition-builder';
+    wrapper.className = 'condition-builder cb-card';
 
     const expressions = Array.isArray(data?.expressions) ? data.expressions : [];
 
@@ -44,8 +78,10 @@ class ConditionBuilder {
 
     expressions.forEach((expr) => this.addExpression(expr.type || expr.kind, expr));
 
+    app.append(header, wrapper);
+
     this.mount.innerHTML = '';
-    this.mount.appendChild(wrapper);
+    this.mount.appendChild(app);
   }
 
   nextId() {
