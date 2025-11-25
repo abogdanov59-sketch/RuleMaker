@@ -4,10 +4,10 @@ class ConditionGroup {
   constructor(builder, parentGroup = null, data = {}) {
     this.builder = builder;
     this.parentGroup = parentGroup;
+    this.rootKind = data.rootKind || null;
     this.id = builder.nextId();
     this.items = [];
     this.el = this.createElement(data);
-    this.updateTag(data.expression || '');
     this.attachDrag();
     this.loadItems(data.items || []);
   }
@@ -26,9 +26,6 @@ class ConditionGroup {
 
     const logic = this.builder.createLogicSelect(data.logic || 'AND');
 
-    const expression = this.builder.createExpressionSelect(data.expression || '');
-    expression.addEventListener('change', () => this.updateTag(expression.value));
-
     const notBtn = document.createElement('button');
     notBtn.className = 'cb-icon cb-invert';
     notBtn.textContent = 'NOT';
@@ -37,9 +34,9 @@ class ConditionGroup {
 
     const tag = document.createElement('span');
     tag.className = 'cb-tag';
-    tag.textContent = data.expression ? `${data.expression} group` : 'Group';
+    tag.textContent = 'Group';
 
-    meta.append(logic, expression, notBtn, tag);
+    meta.append(logic, notBtn, tag);
 
     const actions = document.createElement('div');
     actions.className = 'cb-group-actions';
@@ -59,7 +56,7 @@ class ConditionGroup {
     deleteBtn.className = 'cb-icon cb-delete';
     deleteBtn.title = 'Delete group';
     deleteBtn.textContent = '✕';
-    deleteBtn.disabled = this.parentGroup === null;
+    deleteBtn.disabled = this.parentGroup === null && this.rootKind !== 'ELSE IF';
 
     deleteBtn.addEventListener('click', () => this.remove());
 
@@ -82,16 +79,12 @@ class ConditionGroup {
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.addCondition());
 
-    const addGroupControls = this.builder.createGroupAddControls(
-      ({ logic, expression: newExpression }) => this.addGroup({ logic, expression: newExpression }),
-      'подгруппу',
-    );
+    const addGroupControls = this.builder.createGroupAddControls(({ logic }) => this.addGroup({ logic }), 'подгруппу');
 
     footer.append(addCondition, addGroupControls);
 
     group.append(header, body, footer);
     this.logic = logic;
-    this.expression = expression;
     this.notBtn = notBtn;
     this.body = body;
     this.drag = drag;
@@ -151,6 +144,8 @@ class ConditionGroup {
     if (this.parentGroup) {
       this.parentGroup.removeItem(this);
       this.el.remove();
+    } else if (this.rootKind === 'ELSE IF') {
+      this.builder.removeRootGroup(this);
     }
   }
 
@@ -219,7 +214,6 @@ class ConditionGroup {
     return {
       type: 'group',
       logic: this.logic.value,
-      expression: this.expression.value || null,
       not: this.el.classList.contains('is-not'),
       items: this.items.map((item) => item.toJSON()),
     };
@@ -230,14 +224,6 @@ class ConditionGroup {
     const isValid = validItems.every(Boolean);
     this.el.classList.toggle('is-invalid', !isValid);
     return isValid;
-  }
-
-  updateTag(expressionValue) {
-    this.el.dataset.expression = expressionValue || '';
-    const tag = this.el.querySelector('.cb-tag');
-    if (tag) {
-      tag.textContent = expressionValue ? `${expressionValue} group` : 'Group';
-    }
   }
 }
 
