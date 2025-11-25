@@ -15,36 +15,39 @@ A lightweight, framework-free condition builder component. The component is full
 ```html
 <link rel="stylesheet" href="style.css" />
 <div id="builder"></div>
-<script type="module" src="builder.js"></script>
+<script src="condition.js" defer></script>
+<script src="group.js" defer></script>
+<script src="builder.js" defer></script>
 ```
 
-Initialization happens automatically when an element with `id="builder"` exists. To configure options manually:
+Initialization happens automatically when an element with `id="builder"` exists. To configure options manually after the scripts load:
 
-```js
-import ConditionBuilder from './builder.js';
-
-const builder = new ConditionBuilder('#builder', {
-  fields: [
-    { label: 'Amount', value: 'Amount' },
-    { label: 'Tags.Name', value: 'Tags.Name' },
-    { label: 'Status', value: 'Status' },
-  ],
-  operators: ['=', '!=', '>', '<', '>=', '<=', 'contains'],
-  data: {
-    type: 'group',
-    logic: 'AND',
-    not: false,
-    items: [
-      { type: 'condition', field: 'Tags.Name', operator: 'contains', value: 'VIP' },
-      {
-        type: 'group',
-        logic: 'OR',
-        not: true,
-        items: [{ type: 'condition', field: 'Amount', operator: '>', value: '100' }],
-      },
+```html
+<div id="builder"></div>
+<script>
+  const builder = new ConditionBuilder('#builder', {
+    fields: [
+      { label: 'Amount', value: 'Amount' },
+      { label: 'Tags.Name', value: 'Tags.Name' },
+      { label: 'Status', value: 'Status' },
     ],
-  },
-});
+    operators: ['=', '!=', '>', '<', '>=', '<=', 'contains'],
+    data: {
+      type: 'group',
+      logic: 'AND',
+      not: false,
+      items: [
+        { type: 'condition', field: 'Tags.Name', operator: 'contains', value: 'VIP' },
+        {
+          type: 'group',
+          logic: 'OR',
+          not: true,
+          items: [{ type: 'condition', field: 'Amount', operator: '>', value: '100' }],
+        },
+      ],
+    },
+  });
+</script>
 ```
 
 ## Public API
@@ -60,7 +63,7 @@ In demo mode the builder instance is available on `window.conditionBuilder` for 
 ## Features
 
 - Add/remove conditions and nested groups at any depth (10+ levels supported).
-- Switch logic between **AND**/**OR** and invert groups via **NOT**.
+- Switch logic between **AND**/**OR** and invert groups via **NOT**, including choosing the logical operator when creating a new group.
 - Collapse/expand groups with `.collapsed` state.
 - Drag-and-drop reordering across sibling items or moving to another group body.
 - Built-in styling that highlights nested levels, buttons, and invalid states.

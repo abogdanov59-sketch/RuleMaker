@@ -23,15 +23,7 @@ class ConditionGroup {
     const meta = document.createElement('div');
     meta.className = 'cb-group-meta';
 
-    const logic = document.createElement('select');
-    logic.className = 'cb-logic';
-    ['AND', 'OR'].forEach((value) => {
-      const opt = document.createElement('option');
-      opt.value = value;
-      opt.textContent = value;
-      opt.selected = value === (data.logic || 'AND');
-      logic.appendChild(opt);
-    });
+    const logic = this.builder.createLogicSelect(data.logic || 'AND');
 
     const notBtn = document.createElement('button');
     notBtn.className = 'cb-icon cb-invert';
@@ -84,12 +76,20 @@ class ConditionGroup {
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.addCondition());
 
+    const addGroupControls = document.createElement('div');
+    addGroupControls.className = 'cb-inline-control';
+
+    const addGroupLogic = this.builder.createLogicSelect('AND');
+    addGroupLogic.title = 'Logic for new subgroup';
+
     const addGroup = document.createElement('button');
     addGroup.className = 'cb-btn cb-btn-add-group';
     addGroup.textContent = 'Add subgroup';
-    addGroup.addEventListener('click', () => this.addGroup());
+    addGroup.addEventListener('click', () => this.addGroup({ logic: addGroupLogic.value }));
 
-    footer.append(addCondition, addGroup);
+    addGroupControls.append(addGroupLogic, addGroup);
+
+    footer.append(addCondition, addGroupControls);
 
     group.append(header, body, footer);
     this.logic = logic;

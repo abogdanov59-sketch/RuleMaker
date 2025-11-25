@@ -18,6 +18,12 @@ class ConditionBuilder {
     const controls = document.createElement('div');
     controls.className = 'cb-controls';
 
+    const addGroupControl = document.createElement('div');
+    addGroupControl.className = 'cb-inline-control';
+
+    const addGroupLogic = this.createLogicSelect('AND');
+    addGroupLogic.title = 'Logic for new groups';
+
     const addCondition = document.createElement('button');
     addCondition.className = 'cb-btn cb-btn-add-condition';
     addCondition.textContent = 'Add condition';
@@ -26,9 +32,11 @@ class ConditionBuilder {
     const addGroup = document.createElement('button');
     addGroup.className = 'cb-btn cb-btn-add-group';
     addGroup.textContent = 'Add group';
-    addGroup.addEventListener('click', () => this.rootGroup.addGroup());
+    addGroup.addEventListener('click', () => this.rootGroup.addGroup({ logic: addGroupLogic.value }));
 
-    controls.append(addCondition, addGroup);
+    addGroupControl.append(addGroupLogic, addGroup);
+
+    controls.append(addCondition, addGroupControl);
 
     wrapper.appendChild(controls);
 
@@ -53,6 +61,19 @@ class ConditionBuilder {
 
   setDragging(item) {
     this.dragging = item;
+  }
+
+  createLogicSelect(selected = 'AND') {
+    const select = document.createElement('select');
+    select.className = 'cb-logic';
+    ['AND', 'OR'].forEach((value) => {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      opt.selected = value === selected;
+      select.appendChild(opt);
+    });
+    return select;
   }
 
   toJSON() {
