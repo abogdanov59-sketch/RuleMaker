@@ -8,12 +8,10 @@ class ConditionBuilder {
     this.registry = new Map();
     this.idCounter = 0;
     this.dragging = null;
-    this.ifGroup = null;
-    this.elseIfGroups = [];
-    this.thenInput = null;
-    this.elseInput = null;
     this.controlButtons = {};
     this.expressionList = null;
+    this.expressions = [];
+    this.isNested = Boolean(options.nested);
     this.render(options.data || null);
   }
 
@@ -21,7 +19,7 @@ class ConditionBuilder {
     const wrapper = document.createElement('div');
     wrapper.className = 'condition-builder';
 
-    const expressions = data || {};
+    const expressions = Array.isArray(data?.expressions) ? data.expressions : [];
 
     const controls = this.createExpressionControls();
     const list = document.createElement('div');
@@ -30,21 +28,7 @@ class ConditionBuilder {
 
     wrapper.append(controls, list);
 
-    if (expressions.if) {
-      this.addIfSection(expressions.if);
-    }
-
-    if (expressions.elseIf && Array.isArray(expressions.elseIf)) {
-      expressions.elseIf.forEach((entry) => this.addElseIfSection(entry));
-    }
-
-    if (Object.prototype.hasOwnProperty.call(expressions, 'then')) {
-      this.addThenSection(expressions.then);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(expressions, 'else')) {
-      this.addElseSection(expressions.else);
-    }
+    expressions.forEach((expr) => this.addExpression(expr.type || expr.kind, expr));
 
     this.mount.innerHTML = '';
     this.mount.appendChild(wrapper);
@@ -80,10 +64,9 @@ class ConditionBuilder {
       controls.appendChild(btn);
     };
 
-    addButton('if', 'Добавить IF', () => this.addIfSection());
-    addButton('elseIf', 'Добавить ELSE IF', () => this.addElseIfSection());
-    addButton('then', 'Добавить THEN', () => this.addThenSection());
-    addButton('else', 'Добавить ELSE', () => this.addElseSection());
+    addButton('if', 'Добавить IF', () => this.addExpression('IF'));
+    addButton('elseIf', 'Добавить ELSE IF', () => this.addExpression('ELSE IF'));
+    addButton('else', 'Добавить ELSE', () => this.addExpression('ELSE'));
 
     this.updateExpressionControls();
     return controls;
@@ -118,266 +101,238 @@ class ConditionBuilder {
     return wrapper;
   }
 
-  createExpressionSection(title, initializer, allowMultiple = false, removable = true) {
+  createExpressionBlock(kind, data = {}) {
     const section = document.createElement('div');
     section.className = 'cb-expression-block';
 
     const header = document.createElement('div');
     header.className = 'cb-expression-header';
 
-    const label = document.createElement('div');
-    label.className = 'cb-expression-title';
-    label.textContent = title;
+    const title = document.createElement('div');
+    title.className = 'cb-expression-title';
+    title.textContent = kind;
 
     const actions = document.createElement('div');
     actions.className = 'cb-expression-actions';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'cb-icon cb-delete';
+    removeBtn.title = 'Удалить выражение';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => this.removeExpression(section));
+
+    actions.append(removeBtn);
+    header.append(title, actions);
 
     const body = document.createElement('div');
     body.className = 'cb-expression-body';
-    body.dataset.expr = title;
 
-    const addControls = this.createGroupAddControls(({ logic }) => {
-      if (!allowMultiple) {
-        body.innerHTML = '';
+    const expression = {
+      kind,
+      section,
+      body,
+      thenInput: null,
+      conditionGroup: null,
+      nestedBuilder: null,
+    };
+
+    if (kind !== 'ELSE') {
+      const conditionWrap = document.createElement('div');
+      conditionWrap.className = 'cb-expression-condition';
+
+      const conditionTitle = document.createElement('div');
+      conditionTitle.className = 'cb-subtitle';
+      conditionTitle.textContent = 'Условие';
+
+      const conditionBody = document.createElement('div');
+      conditionBody.className = 'cb-expression-condition-body';
+      conditionBody.dataset.expr = kind;
+
+      const addControls = this.createGroupAddControls(({ logic }) => {
+        conditionBody.innerHTML = '';
+        expression.conditionGroup = this.addRootGroup(conditionBody, {
+          logic,
+          type: 'group',
+          not: false,
+          items: [],
+          rootKind: kind,
+        });
+      }, 'группу');
+
+      conditionWrap.append(conditionTitle, conditionBody, addControls);
+      body.appendChild(conditionWrap);
+
+      if (data.condition) {
+        conditionBody.innerHTML = '';
+        expression.conditionGroup = this.addRootGroup(conditionBody, { ...data.condition, rootKind: kind });
       }
-      this.addRootGroup(body, { logic, type: 'group', not: false, items: [] });
-    });
-
-    actions.appendChild(addControls);
-
-    if (removable) {
-      const remove = document.createElement('button');
-      remove.className = 'cb-icon cb-delete';
-      remove.title = 'Удалить блок';
-      remove.textContent = '✕';
-      remove.addEventListener('click', () => {
-        section.remove();
-        initializer(body, true);
-      });
-      actions.appendChild(remove);
     }
 
-    header.append(label, actions);
-    section.append(header, body);
+    const actionWrap = document.createElement('div');
+    actionWrap.className = 'cb-expression-action';
 
-    initializer(body, false);
+    const actionTitle = document.createElement('div');
+    actionTitle.className = 'cb-subtitle';
+    actionTitle.textContent = 'Действие (THEN)';
 
-    return section;
-  }
-
-  createValueSection(title, initialValue = '', removable = true, onRemove = () => {}) {
-    const section = document.createElement('div');
-    section.className = 'cb-expression-block';
-
-    const header = document.createElement('div');
-    header.className = 'cb-expression-header';
-
-    const label = document.createElement('div');
-    label.className = 'cb-expression-title';
-    label.textContent = title;
-
-    const actions = document.createElement('div');
-    actions.className = 'cb-expression-actions';
-
-    if (removable) {
-      const remove = document.createElement('button');
-      remove.className = 'cb-icon cb-delete';
-      remove.title = 'Удалить блок';
-      remove.textContent = '✕';
-      remove.addEventListener('click', () => {
-        section.remove();
-        onRemove();
-      });
-      actions.appendChild(remove);
-    }
-
-    header.append(label, actions);
-
-    const body = document.createElement('div');
-    body.className = 'cb-expression-body cb-expression-body--value';
+    const actionBody = document.createElement('div');
+    actionBody.className = 'cb-expression-action-body';
 
     const input = document.createElement('textarea');
     input.className = 'cb-expression-value';
-    input.placeholder = 'Введите возвращаемое значение для ' + title;
-    input.value = initialValue;
+    input.placeholder = 'Введите результат выполнения';
+    input.value = data.then?.value || '';
+    expression.thenInput = input;
 
-    body.appendChild(input);
+    const nestedArea = document.createElement('div');
+    nestedArea.className = 'cb-nested-expressions';
+
+    const nestedControls = document.createElement('div');
+    nestedControls.className = 'cb-nested-controls';
+    const nestedBtn = document.createElement('button');
+    nestedBtn.className = 'cb-btn cb-btn-add-expression';
+    nestedBtn.textContent = 'Добавить вложенное выражение';
+    nestedBtn.addEventListener('click', () => {
+      if (expression.nestedBuilder) return;
+      const nestedContainer = document.createElement('div');
+      nestedContainer.className = 'cb-nested-container';
+      nestedArea.appendChild(nestedContainer);
+      expression.nestedBuilder = new ConditionBuilder(nestedContainer, {
+        fields: this.fields,
+        operators: this.operators,
+        nested: true,
+      });
+      expression.nestedBuilder.updateExpressionControls();
+    });
+    nestedControls.appendChild(nestedBtn);
+
+    if (data.then?.nested) {
+      const nestedContainer = document.createElement('div');
+      nestedContainer.className = 'cb-nested-container';
+      nestedArea.appendChild(nestedContainer);
+      expression.nestedBuilder = new ConditionBuilder(nestedContainer, {
+        fields: this.fields,
+        operators: this.operators,
+        nested: true,
+        data: data.then.nested,
+      });
+    }
+
+    actionBody.append(input, nestedControls, nestedArea);
+    actionWrap.append(actionTitle, actionBody);
+    body.appendChild(actionWrap);
+
     section.append(header, body);
-
-    if (title === 'THEN') {
-      this.thenInput = input;
-    }
-    if (title === 'ELSE') {
-      this.elseInput = input;
-    }
-
-    return section;
+    return expression;
   }
 
   addRootGroup(container, data) {
-    const group = new ConditionGroup(this, null, { ...data, rootKind: container.dataset.expr || null });
+    const group = new ConditionGroup(this, null, data);
     container.appendChild(group.el);
     this.register(group);
-
-    if (group.rootKind === 'IF') {
-      this.ifGroup = group;
-    }
-
-    if (group.rootKind === 'ELSE IF') {
-      this.elseIfGroups = this.elseIfGroups || [];
-      if (!this.elseIfGroups.includes(group)) {
-        this.elseIfGroups.push(group);
-      }
-    }
-
-    this.updateExpressionControls();
     return group;
   }
 
-  removeRootGroup(group) {
-    if (group.rootKind === 'ELSE IF' && this.elseIfGroups) {
-      this.elseIfGroups = this.elseIfGroups.filter((entry) => entry !== group);
+  addExpression(kind, data = {}) {
+    if (!this.canAdd(kind)) return;
+    const expression = this.createExpressionBlock(kind, data || {});
+    if (kind === 'IF') {
+      this.expressions.unshift(expression);
+      this.expressionList.prepend(expression.section);
+    } else {
+      this.expressions.push(expression);
+      this.expressionList.appendChild(expression.section);
     }
-    if (group.rootKind === 'IF' && this.ifGroup === group) {
-      this.ifGroup = null;
-    }
-    const parentBody = group.el.parentElement;
-    if (parentBody && parentBody._group === group) {
-      parentBody._group = null;
-    }
-    group.el.remove();
     this.updateExpressionControls();
   }
 
-  addIfSection(data = null) {
-    if (this.ifSection) {
-      this.ifSection.remove();
+  removeExpression(section) {
+    const removed = this.expressions.find((expr) => expr.section === section);
+    this.expressions = this.expressions.filter((expr) => expr.section !== section);
+    section.remove();
+
+    if (!this.expressions.some((expr) => expr.kind === 'IF')) {
+      this.expressions.forEach((expr) => expr.section.remove());
+      this.expressions = [];
+    } else if (removed && removed.kind === 'ELSE') {
+      // drop stray ELSE IF items that would follow a removed ELSE
+      const firstElseIndex = this.expressions.findIndex((expr) => expr.kind === 'ELSE');
+      if (firstElseIndex !== -1) {
+        const trailing = this.expressions.slice(firstElseIndex + 1);
+        trailing.forEach((expr) => expr.section.remove());
+        this.expressions = this.expressions.slice(0, firstElseIndex + 1);
+      }
     }
-
-    const initializer = (body, isRemove) => {
-      if (isRemove) {
-        if (this.ifGroup) {
-          this.removeRootGroup(this.ifGroup);
-        }
-        this.ifSection = null;
-        this.updateExpressionControls();
-        return;
-      }
-      if (body && data) {
-        body.innerHTML = '';
-        const group = this.addRootGroup(body, data);
-        body._group = group;
-      }
-    };
-
-    const section = this.createExpressionSection('IF', initializer, false, true);
-    this.ifSection = section;
-    this.expressionList.appendChild(section);
     this.updateExpressionControls();
   }
 
-  addElseIfSection(data = null) {
-    const initializer = (body, isRemove) => {
-      if (isRemove) {
-        if (body && body._group) {
-          this.removeRootGroup(body._group);
-        }
-        this.elseIfGroups = this.elseIfGroups.filter((grp) => grp !== body?._group);
-        this.updateExpressionControls();
-        return;
-      }
-
-      if (body && data) {
-        body.innerHTML = '';
-        const group = this.addRootGroup(body, data);
-        body._group = group;
-      }
-    };
-
-    const section = this.createExpressionSection('ELSE IF', initializer, false, true);
-    const body = section.querySelector('.cb-expression-body');
-    if (typeof body._group === 'undefined') {
-      body._group = null;
-    }
-
-    // override add control to enforce a single group per ELSE IF section
-    const addBtn = section.querySelector('.cb-btn-add-group');
-    const logicSelect = section.querySelector('.cb-logic');
-    addBtn.replaceWith(addBtn.cloneNode(true));
-    const newAddBtn = section.querySelector('.cb-btn-add-group');
-    newAddBtn.addEventListener('click', () => {
-      body.innerHTML = '';
-      const group = this.addRootGroup(body, { logic: logicSelect.value, type: 'group', not: false, items: [] });
-      body._group = group;
-    });
-
-    this.expressionList.appendChild(section);
-    this.updateExpressionControls();
-  }
-
-  addThenSection(initialValue = '') {
-    if (this.thenSection) {
-      this.thenSection.remove();
-    }
-
-    const onRemove = () => {
-      this.thenInput = null;
-      this.thenSection = null;
-      this.updateExpressionControls();
-    };
-
-    const section = this.createValueSection('THEN', initialValue || '', true, onRemove);
-    this.thenSection = section;
-    this.expressionList.appendChild(section);
-    this.updateExpressionControls();
-  }
-
-  addElseSection(initialValue = '') {
-    if (this.elseSection) {
-      this.elseSection.remove();
-    }
-
-    const onRemove = () => {
-      this.elseInput = null;
-      this.elseSection = null;
-      this.updateExpressionControls();
-    };
-
-    const section = this.createValueSection('ELSE', initialValue || '', true, onRemove);
-    this.elseSection = section;
-    this.expressionList.appendChild(section);
-    this.updateExpressionControls();
+  canAdd(kind) {
+    const hasIf = this.expressions.some((expr) => expr.kind === 'IF');
+    const hasElse = this.expressions.some((expr) => expr.kind === 'ELSE');
+    if (kind === 'IF') return !hasIf;
+    if (kind === 'ELSE IF') return hasIf && !hasElse;
+    if (kind === 'ELSE') return hasIf && !hasElse;
+    return true;
   }
 
   updateExpressionControls() {
     if (!this.controlButtons) return;
-    if (this.controlButtons.if) {
-      this.controlButtons.if.disabled = Boolean(this.ifSection);
-    }
-    if (this.controlButtons.then) {
-      this.controlButtons.then.disabled = Boolean(this.thenInput);
-    }
-    if (this.controlButtons.else) {
-      this.controlButtons.else.disabled = Boolean(this.elseInput);
-    }
+    const hasIf = this.expressions.some((expr) => expr.kind === 'IF');
+    const hasElse = this.expressions.some((expr) => expr.kind === 'ELSE');
+
+    if (this.controlButtons.if) this.controlButtons.if.disabled = hasIf;
+    if (this.controlButtons.elseIf) this.controlButtons.elseIf.disabled = !hasIf || hasElse;
+    if (this.controlButtons.else) this.controlButtons.else.disabled = !hasIf || hasElse;
   }
 
   toJSON() {
     return {
-      if: this.ifGroup ? this.ifGroup.toJSON() : null,
-      elseIf: this.elseIfGroups ? this.elseIfGroups.map((grp) => grp.toJSON()) : [],
-      then: this.thenInput ? this.thenInput.value : null,
-      else: this.elseInput ? this.elseInput.value : null,
+      expressions: this.expressions.map((expr) => ({
+        type: expr.kind,
+        condition: expr.conditionGroup ? expr.conditionGroup.toJSON() : null,
+        then: {
+          value: expr.thenInput ? expr.thenInput.value : '',
+          nested: expr.nestedBuilder ? expr.nestedBuilder.toJSON() : null,
+        },
+      })),
     };
   }
 
-  validate() {
-    const validations = [];
-    if (this.ifGroup) validations.push(this.ifGroup.validate());
-    if (this.elseIfGroups) {
-      this.elseIfGroups.forEach((grp) => validations.push(grp.validate()));
+  validateSequence() {
+    if (this.expressions.length === 0) return true;
+    if (this.expressions[0].kind !== 'IF') return false;
+    let seenElse = false;
+    for (let i = 0; i < this.expressions.length; i += 1) {
+      const kind = this.expressions[i].kind;
+      if (kind === 'ELSE') seenElse = true;
+      if (seenElse && kind === 'ELSE IF') return false;
     }
-    return validations.every(Boolean);
+    return true;
+  }
+
+  validate() {
+    const sequenceValid = this.validateSequence();
+    let allValid = sequenceValid;
+
+    this.expressions.forEach((expr) => {
+      let exprValid = true;
+      const hasCondition = expr.kind === 'ELSE' ? true : Boolean(expr.conditionGroup);
+      if (!hasCondition) exprValid = false;
+      if (expr.kind !== 'ELSE' && expr.conditionGroup) {
+        exprValid = expr.conditionGroup.validate() && exprValid;
+      }
+      const hasAction = expr.thenInput && expr.thenInput.value.trim() !== '';
+      expr.thenInput.classList.toggle('is-invalid', !hasAction);
+      if (!hasAction) exprValid = false;
+      if (expr.nestedBuilder) {
+        exprValid = expr.nestedBuilder.validate() && exprValid;
+      }
+      if (!sequenceValid) exprValid = false;
+      expr.section.classList.toggle('is-invalid', !exprValid);
+      allValid = allValid && exprValid;
+    });
+
+    return allValid;
   }
 
   static fromJSON(mount, json, options = {}) {

@@ -20,7 +20,7 @@ A lightweight, framework-free condition builder component. The component is full
 <script src="builder.js" defer></script>
 ```
 
-Initialization happens automatically when an element with `id="builder"` exists. By default no IF / ELSE IF / THEN / ELSE blocks are pre-created — use the top-row buttons to add whichever expressions you need, then add nested groups/conditions inside them. To configure options manually after the scripts load:
+Initialization happens automatically when an element with `id="builder"` exists. By default no IF / ELSE IF / THEN / ELSE blocks are pre-created — use the top-row buttons to add whichever expressions you need, then add nested groups/conditions inside them. Each IF/ELSE IF carries its own THEN action, while ELSE holds a THEN action without a condition. To configure options manually after the scripts load:
 
 ```html
 <div id="builder"></div>
@@ -33,25 +33,32 @@ Initialization happens automatically when an element with `id="builder"` exists.
     ],
     operators: ['=', '!=', '>', '<', '>=', '<=', 'contains'],
     data: {
-      if: {
-        type: 'group',
-        logic: 'AND',
-        not: false,
-        items: [
-          { type: 'condition', field: 'Tags.Name', operator: 'contains', value: 'VIP' },
-          { type: 'condition', field: 'Amount', operator: '>', value: '100' },
-        ],
-      },
-      elseIf: [
+      expressions: [
         {
-          type: 'group',
-          logic: 'OR',
-          not: false,
-          items: [{ type: 'condition', field: 'Status', operator: '!=', value: 'Blocked' }],
+          type: 'IF',
+          condition: {
+            type: 'group',
+            logic: 'AND',
+            not: false,
+            items: [
+              { type: 'condition', field: 'Tags.Name', operator: 'contains', value: 'VIP' },
+              { type: 'condition', field: 'Amount', operator: '>', value: '100' },
+            ],
+          },
+          then: { value: 'Approve request' },
         },
+        {
+          type: 'ELSE IF',
+          condition: {
+            type: 'group',
+            logic: 'OR',
+            not: false,
+            items: [{ type: 'condition', field: 'Status', operator: '!=', value: 'Blocked' }],
+          },
+          then: { value: 'Fallback route' },
+        },
+        { type: 'ELSE', then: { value: 'Reject request' } },
       ],
-      then: 'Approve request',
-      else: 'Reject request',
     },
   });
 </script>
@@ -61,8 +68,8 @@ Initialization happens automatically when an element with `id="builder"` exists.
 
 `ConditionBuilder` methods:
 
-- `toJSON()` – returns a deterministic JSON structure of the current state across the IF / ELSE IF branches, plus free-form THEN / ELSE return values.
-- `validate()` – validates that every condition has field, operator, and value; highlights invalid nodes.
+- `toJSON()` – returns a deterministic JSON structure with ordered expressions, each containing a condition (for IF / ELSE IF) and a THEN action, plus optional nested expressions inside THEN/ELSE bodies.
+- `validate()` – validates logical ordering (IF first, ELSE IF before ELSE), ensures every condition is filled, and that each THEN/ELSE action has a value; highlights invalid nodes.
 - `ConditionBuilder.fromJSON(mount, json, options?)` – convenience factory that builds the tree from an existing JSON payload.
 
 In demo mode the builder instance is available on `window.conditionBuilder` for quick inspection, e.g. `conditionBuilder.toJSON()` in the console.
@@ -70,7 +77,8 @@ In demo mode the builder instance is available on `window.conditionBuilder` for 
 ## Features
 
 - Add/remove conditions and nested groups at any depth (10+ levels supported).
-- Separate top-level branches for **IF** and **ELSE IF** groups (AND/OR selectable) that are created on demand; **THEN** and **ELSE** sections accept direct return values without wrapping groups and can be added/removed independently.
+- Ordered IF / ELSE IF / ELSE expressions where every IF/ELSE IF contains both a condition and a THEN action; ELSE holds its own action and can host nested expressions.
+- Nested expressions can be created from inside any THEN or ELSE body, allowing arbitrarily deep conditional chains.
 - Collapse/expand groups with `.collapsed` state.
 - Drag-and-drop reordering across sibling items or moving to another group body (conditions and groups are both draggable).
 - Built-in styling that highlights nested levels, buttons, and invalid states.

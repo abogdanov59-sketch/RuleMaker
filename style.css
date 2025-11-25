@@ -63,6 +63,10 @@ body {
   background: var(--cb-bg-level-1);
 }
 
+.cb-expression-block.is-invalid {
+  border-color: var(--cb-danger);
+}
+
 .cb-expression-header {
   display: flex;
   justify-content: space-between;
@@ -83,6 +87,30 @@ body {
   gap: 10px;
 }
 
+.cb-expression-condition,
+.cb-expression-action {
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 10px;
+  background: white;
+}
+
+.cb-expression-condition-body {
+  min-height: 12px;
+  margin: 8px 0;
+}
+
+.cb-expression-action-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cb-subtitle {
+  font-weight: 600;
+  color: var(--cb-muted);
+}
+
 .cb-expression-body--value {
   padding: 6px 0;
 }
@@ -95,6 +123,26 @@ body {
   border: 1px solid var(--cb-border);
   font-size: 14px;
   resize: vertical;
+}
+
+.cb-expression-value.is-invalid {
+  border-color: var(--cb-danger);
+}
+
+.cb-nested-controls {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.cb-nested-expressions {
+  border: 1px dashed var(--cb-border);
+  border-radius: var(--cb-radius);
+  padding: 8px;
+  background: var(--cb-bg-level-2);
+}
+
+.cb-nested-container .cb-expression-block {
+  margin-top: 10px;
 }
 
 .cb-group {
