@@ -94,6 +94,14 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 12px;
+  padding: 4px 2px;
+}
+
+.cb-group-body.is-drag-over {
+  border: 1px dashed var(--cb-accent);
+  border-radius: var(--cb-radius);
+  background: rgba(75, 123, 236, 0.04);
 }
 
 .cb-group-footer {
@@ -136,7 +144,8 @@ body {
 .cb-field,
 .cb-operator,
 .cb-value,
-.cb-logic {
+.cb-logic,
+.cb-expression {
   padding: 6px 8px;
   border: 1px solid var(--cb-border);
   border-radius: 6px;

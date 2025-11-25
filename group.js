@@ -25,6 +25,9 @@ class ConditionGroup {
 
     const logic = this.builder.createLogicSelect(data.logic || 'AND');
 
+    const expression = this.builder.createExpressionSelect(data.expression || '');
+    expression.addEventListener('change', () => this.updateTag(expression.value));
+
     const notBtn = document.createElement('button');
     notBtn.className = 'cb-icon cb-invert';
     notBtn.textContent = 'NOT';
@@ -33,9 +36,9 @@ class ConditionGroup {
 
     const tag = document.createElement('span');
     tag.className = 'cb-tag';
-    tag.textContent = 'Group';
+    tag.textContent = data.expression ? `${data.expression} group` : 'Group';
 
-    meta.append(logic, notBtn, tag);
+    meta.append(logic, expression, notBtn, tag);
 
     const actions = document.createElement('div');
     actions.className = 'cb-group-actions';
@@ -66,6 +69,8 @@ class ConditionGroup {
     const body = document.createElement('div');
     body.className = 'cb-group-body';
     body.addEventListener('dragover', (event) => this.onDragOver(event));
+    body.addEventListener('dragenter', (event) => this.onDragEnter(event));
+    body.addEventListener('dragleave', (event) => this.onDragLeave(event));
     body.addEventListener('drop', (event) => this.onDrop(event));
 
     const footer = document.createElement('div');
@@ -76,12 +81,16 @@ class ConditionGroup {
     addCondition.textContent = 'Add condition';
     addCondition.addEventListener('click', () => this.addCondition());
 
-    const addGroupControls = this.builder.createLogicAddControls((logic) => this.addGroup({ logic }), 'subgroup');
+    const addGroupControls = this.builder.createGroupAddControls(
+      ({ logic, expression: newExpression }) => this.addGroup({ logic, expression: newExpression }),
+      'подгруппу',
+    );
 
     footer.append(addCondition, addGroupControls);
 
     group.append(header, body, footer);
     this.logic = logic;
+    this.expression = expression;
     this.notBtn = notBtn;
     this.body = body;
     this.drag = drag;
@@ -90,6 +99,8 @@ class ConditionGroup {
     if (data.not) {
       this.toggleNot(true);
     }
+
+    this.updateTag(data.expression || '');
 
     return group;
   }
@@ -153,6 +164,20 @@ class ConditionGroup {
     this.el.classList.toggle('collapsed');
   }
 
+  onDragEnter(event) {
+    event.preventDefault();
+    const dragging = this.builder.dragging;
+    if (!dragging || dragging === this || dragging === this.parentGroup) return;
+    this.body.classList.add('is-drag-over');
+  }
+
+  onDragLeave(event) {
+    const related = event.relatedTarget;
+    if (!this.body.contains(related)) {
+      this.body.classList.remove('is-drag-over');
+    }
+  }
+
   onDragOver(event) {
     event.preventDefault();
     const dragging = this.builder.dragging;
@@ -172,6 +197,7 @@ class ConditionGroup {
 
   onDrop(event) {
     event.preventDefault();
+    this.body.classList.remove('is-drag-over');
     const dragging = this.builder.dragging;
     if (!dragging) return;
 
@@ -194,6 +220,7 @@ class ConditionGroup {
     return {
       type: 'group',
       logic: this.logic.value,
+      expression: this.expression.value || null,
       not: this.el.classList.contains('is-not'),
       items: this.items.map((item) => item.toJSON()),
     };
@@ -204,6 +231,14 @@ class ConditionGroup {
     const isValid = validItems.every(Boolean);
     this.el.classList.toggle('is-invalid', !isValid);
     return isValid;
+  }
+
+  updateTag(expressionValue) {
+    this.el.dataset.expression = expressionValue || '';
+    const tag = this.el.querySelector('.cb-tag');
+    if (tag) {
+      tag.textContent = expressionValue ? `${expressionValue} group` : 'Group';
+    }
   }
 }
 
