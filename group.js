@@ -56,7 +56,8 @@ class ConditionGroup {
     deleteBtn.className = 'cb-icon cb-delete';
     deleteBtn.title = 'Delete group';
     deleteBtn.textContent = '✕';
-    deleteBtn.disabled = this.parentGroup === null && !this.rootKind;
+    // Root condition groups are mandatory for IF / ELSE IF expressions
+    deleteBtn.disabled = this.parentGroup === null;
 
     deleteBtn.addEventListener('click', () => this.remove());
 

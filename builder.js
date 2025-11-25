@@ -165,6 +165,14 @@ class ConditionBuilder {
       if (data.condition) {
         conditionBody.innerHTML = '';
         expression.conditionGroup = this.addRootGroup(conditionBody, { ...data.condition, rootKind: kind });
+      } else {
+        expression.conditionGroup = this.addRootGroup(conditionBody, {
+          type: 'group',
+          logic: 'AND',
+          not: false,
+          items: [],
+          rootKind: kind,
+        });
       }
     }
 
@@ -178,11 +186,20 @@ class ConditionBuilder {
     const actionBody = document.createElement('div');
     actionBody.className = 'cb-expression-action-body';
 
+    const returnRow = document.createElement('div');
+    returnRow.className = 'cb-return-row';
+
+    const valueLabel = document.createElement('label');
+    valueLabel.className = 'cb-return-label';
+    valueLabel.textContent = 'Вернуть значение:';
+
     const input = document.createElement('textarea');
     input.className = 'cb-expression-value';
-    input.placeholder = 'Введите результат выполнения';
+    input.placeholder = 'Например: LowRisk, MediumRisk, HighRisk';
     input.value = data.then?.value || '';
     expression.thenInput = input;
+
+    returnRow.append(valueLabel, input);
 
     const nestedArea = document.createElement('div');
     nestedArea.className = 'cb-nested-expressions';
@@ -218,7 +235,7 @@ class ConditionBuilder {
       });
     }
 
-    actionBody.append(input, nestedControls, nestedArea);
+    actionBody.append(returnRow, nestedControls, nestedArea);
     actionWrap.append(actionTitle, actionBody);
     body.appendChild(actionWrap);
 
@@ -240,9 +257,27 @@ class ConditionBuilder {
       this.expressions.unshift(expression);
       this.expressionList.prepend(expression.section);
     } else {
-      this.expressions.push(expression);
-      this.expressionList.appendChild(expression.section);
+    this.expressions.push(expression);
+    this.expressionList.appendChild(expression.section);
+  }
+
+  removeRootGroup(group) {
+    const expr = this.expressions.find((entry) => entry.conditionGroup === group);
+    if (!expr) return;
+    const container = group.el.parentElement;
+    group.el.remove();
+    if (container) {
+      expr.conditionGroup = this.addRootGroup(container, {
+        type: 'group',
+        logic: 'AND',
+        not: false,
+        items: [],
+        rootKind: expr.kind,
+      });
+    } else {
+      expr.conditionGroup = null;
     }
+  }
     this.updateExpressionControls();
   }
 

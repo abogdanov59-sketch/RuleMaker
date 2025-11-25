@@ -106,6 +106,17 @@ body {
   gap: 8px;
 }
 
+.cb-return-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cb-return-label {
+  font-weight: 600;
+  color: var(--cb-muted);
+}
+
 .cb-subtitle {
   font-weight: 600;
   color: var(--cb-muted);

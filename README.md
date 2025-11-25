@@ -20,7 +20,7 @@ A lightweight, framework-free condition builder component. The component is full
 <script src="builder.js" defer></script>
 ```
 
-Initialization happens automatically when an element with `id="builder"` exists. By default no IF / ELSE IF / THEN / ELSE blocks are pre-created — use the top-row buttons to add whichever expressions you need, then add nested groups/conditions inside them. Each IF/ELSE IF carries its own THEN action, while ELSE holds a THEN action without a condition. To configure options manually after the scripts load:
+Initialization happens automatically when an element with `id="builder"` exists. By default no IF / ELSE IF / THEN / ELSE blocks are pre-created — use the top-row buttons to add whichever expressions you need. Each IF / ELSE IF instantly contains a starter condition group (logic AND by default) plus a THEN action row labelled "Вернуть значение", while ELSE holds a THEN action without a condition. Inside any THEN/ELSE body you can also spin up another nested expression builder to model chains like the multi-level IF / ELSE blocks from the control example. To configure options manually after the scripts load:
 
 ```html
 <div id="builder"></div>
@@ -77,7 +77,7 @@ In demo mode the builder instance is available on `window.conditionBuilder` for 
 ## Features
 
 - Add/remove conditions and nested groups at any depth (10+ levels supported).
-- Ordered IF / ELSE IF / ELSE expressions where every IF/ELSE IF contains both a condition and a THEN action; ELSE holds its own action and can host nested expressions.
+- Ordered IF / ELSE IF / ELSE expressions where every IF/ELSE IF contains both a prebuilt condition group and a THEN action; ELSE holds its own action and can host nested expressions.
 - Nested expressions can be created from inside any THEN or ELSE body, allowing arbitrarily deep conditional chains.
 - Collapse/expand groups with `.collapsed` state.
 - Drag-and-drop reordering across sibling items or moving to another group body (conditions and groups are both draggable).
