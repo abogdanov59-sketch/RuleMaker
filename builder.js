@@ -3,8 +3,22 @@
 class ConditionBuilder {
   constructor(mount, options = {}) {
     this.mount = typeof mount === 'string' ? document.querySelector(mount) : mount;
-    this.fields = options.fields || ['Amount', 'Tags.Name', 'Status'];
-    this.operators = options.operators || ['=', '!=', '>', '<', 'contains'];
+    this.fields =
+      options.fields ||
+      [
+        { label: 'Сумма', value: 'Amount' },
+        { label: 'Теги.Имя', value: 'Tags.Name' },
+        { label: 'Статус', value: 'Status' },
+      ];
+    this.operators =
+      options.operators ||
+      [
+        { label: '=', value: '=' },
+        { label: '≠', value: '!=' },
+        { label: '>', value: '>' },
+        { label: '<', value: '<' },
+        { label: 'Содержит', value: 'contains' },
+      ];
     this.registry = new Map();
     this.idCounter = 0;
     this.dragging = null;
@@ -64,9 +78,13 @@ class ConditionBuilder {
       controls.appendChild(btn);
     };
 
-    addButton('if', 'Добавить IF', () => this.addExpression('IF'));
-    addButton('elseIf', 'Добавить ELSE IF', () => this.addExpression('ELSE IF'));
-    addButton('else', 'Добавить ELSE', () => this.addExpression('ELSE'));
+    addButton('if', `Добавить ${this.expressionLabel('IF')}`, () => this.addExpression('IF'));
+    addButton(
+      'elseIf',
+      `Добавить ${this.expressionLabel('ELSE IF')}`,
+      () => this.addExpression('ELSE IF'),
+    );
+    addButton('else', `Добавить ${this.expressionLabel('ELSE')}`, () => this.addExpression('ELSE'));
 
     this.updateExpressionControls();
     return controls;
@@ -78,11 +96,20 @@ class ConditionBuilder {
     ['AND', 'OR'].forEach((value) => {
       const opt = document.createElement('option');
       opt.value = value;
-      opt.textContent = value;
+      opt.textContent = value === 'AND' ? 'И' : 'ИЛИ';
       opt.selected = value === selected;
       select.appendChild(opt);
     });
     return select;
+  }
+
+  expressionLabel(kind) {
+    const labels = {
+      IF: 'ЕСЛИ',
+      'ELSE IF': 'ИНАЧЕ ЕСЛИ',
+      ELSE: 'ИНАЧЕ',
+    };
+    return labels[kind] || kind;
   }
 
   createGroupAddControls(onAdd, label = 'группу') {
@@ -110,7 +137,7 @@ class ConditionBuilder {
 
     const title = document.createElement('div');
     title.className = 'cb-expression-title';
-    title.textContent = kind;
+    title.textContent = this.expressionLabel(kind);
 
     const actions = document.createElement('div');
     actions.className = 'cb-expression-actions';
@@ -181,7 +208,7 @@ class ConditionBuilder {
 
     const actionTitle = document.createElement('div');
     actionTitle.className = 'cb-subtitle';
-    actionTitle.textContent = 'Действие (THEN)';
+    actionTitle.textContent = 'Действие (ТОГДА)';
 
     const actionBody = document.createElement('div');
     actionBody.className = 'cb-expression-action-body';
@@ -195,7 +222,7 @@ class ConditionBuilder {
 
     const input = document.createElement('textarea');
     input.className = 'cb-expression-value';
-    input.placeholder = 'Например: LowRisk, MediumRisk, HighRisk';
+    input.placeholder = 'Например: НизкийРиск, СреднийРиск, ВысокийРиск';
     input.value = data.then?.value || '';
     expression.thenInput = input;
 
@@ -383,12 +410,20 @@ const mountPoint = document.getElementById('builder');
 if (mountPoint) {
   const builder = new ConditionBuilder(mountPoint, {
     fields: [
-      { label: 'Amount', value: 'Amount' },
-      { label: 'Tags.Name', value: 'Tags.Name' },
-      { label: 'Status', value: 'Status' },
-      { label: 'Country', value: 'Country' },
+      { label: 'Сумма', value: 'Amount' },
+      { label: 'Теги.Имя', value: 'Tags.Name' },
+      { label: 'Статус', value: 'Status' },
+      { label: 'Страна', value: 'Country' },
     ],
-    operators: ['=', '!=', '>', '<', '>=', '<=', 'contains'],
+    operators: [
+      { label: '=', value: '=' },
+      { label: '≠', value: '!=' },
+      { label: '>', value: '>' },
+      { label: '<', value: '<' },
+      { label: '≥', value: '>=' },
+      { label: '≤', value: '<=' },
+      { label: 'Содержит', value: 'contains' },
+    ],
   });
 
   // expose for debugging/demo

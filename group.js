@@ -28,13 +28,13 @@ class ConditionGroup {
 
     const notBtn = document.createElement('button');
     notBtn.className = 'cb-icon cb-invert';
-    notBtn.textContent = 'NOT';
-    notBtn.title = 'Invert group';
+    notBtn.textContent = 'НЕ';
+    notBtn.title = 'Инвертировать группу';
     notBtn.addEventListener('click', () => this.toggleNot());
 
     const tag = document.createElement('span');
     tag.className = 'cb-tag';
-    tag.textContent = 'Group';
+    tag.textContent = 'Группа';
 
     meta.append(logic, notBtn, tag);
 
@@ -43,18 +43,18 @@ class ConditionGroup {
 
     const collapse = document.createElement('button');
     collapse.className = 'cb-icon cb-collapse';
-    collapse.title = 'Collapse/expand';
+    collapse.title = 'Свернуть/развернуть';
     collapse.textContent = '−';
     collapse.addEventListener('click', () => this.toggleCollapse());
 
     const drag = document.createElement('button');
     drag.className = 'cb-icon cb-drag';
-    drag.title = 'Drag to move';
+    drag.title = 'Перетащите для перемещения';
     drag.textContent = '⇅';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'cb-icon cb-delete';
-    deleteBtn.title = 'Delete group';
+    deleteBtn.title = 'Удалить группу';
     deleteBtn.textContent = '✕';
     // Root condition groups are mandatory for IF / ELSE IF expressions
     deleteBtn.disabled = this.parentGroup === null;
@@ -77,7 +77,7 @@ class ConditionGroup {
 
     const addCondition = document.createElement('button');
     addCondition.className = 'cb-btn cb-btn-add-condition';
-    addCondition.textContent = 'Add condition';
+    addCondition.textContent = 'Добавить условие';
     addCondition.addEventListener('click', () => this.addCondition());
 
     const addGroupControls = this.builder.createGroupAddControls(({ logic }) => this.addGroup({ logic }), 'подгруппу');

@@ -31,12 +31,12 @@ class Condition {
 
     const drag = document.createElement('button');
     drag.className = 'cb-icon cb-drag';
-    drag.title = 'Drag to move';
+    drag.title = 'Перетащите для перемещения';
     drag.textContent = '⇅';
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'cb-icon cb-delete';
-    deleteBtn.title = 'Delete condition';
+    deleteBtn.title = 'Удалить условие';
     deleteBtn.textContent = '✕';
 
     deleteBtn.addEventListener('click', () => this.remove());
@@ -55,7 +55,7 @@ class Condition {
     select.innerHTML = '';
     const placeholder = document.createElement('option');
     placeholder.value = '';
-    placeholder.textContent = 'Select';
+    placeholder.textContent = 'Выберите';
     placeholder.disabled = true;
     placeholder.selected = !selected;
     select.appendChild(placeholder);
